@@ -1055,11 +1055,6 @@ details p {
   box-shadow: 0 12px 22px rgba(123, 144, 255, 0.22);
 }
 
-.btn.ghost {
-  background: rgba(255, 255, 255, 0.40);
-  border-color: var(--stroke);
-}
-
 .btn.outline {
   background: transparent;
   border-color: rgba(123, 144, 255, 0.30);

@@ -1,5 +1,5 @@
 <script setup>
-import {computed} from "vue";
+import { computed, onMounted, ref } from "vue";
 
 const BRAND = {
   name: "Sumire Vox Bot",
@@ -7,65 +7,47 @@ const BRAND = {
 };
 
 const config = {
-  discordClientId: import.meta.env.VITE_DISCORD_CLIENT_ID,
-  discordRedirectUri: import.meta.env.VITE_DISCORD_REDIRECT_URI,
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL, // 例: https://api.sumirevox.com（開発では空でもOK）
   discordInviteUrl: import.meta.env.VITE_DISCORD_INVITE_URL,
   stripeCheckoutUrl: import.meta.env.VITE_STRIPE_CHECKOUT_URL,
 };
 
 const isConfigured = computed(() => {
-  return Boolean(config.discordClientId && config.discordRedirectUri && config.discordInviteUrl);
+  return Boolean(config.discordInviteUrl);
 });
 
-function base64UrlEncode(buffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+function apiUrl(path) {
+  if (import.meta.env.DEV) return path;
+  if (!config.apiBaseUrl) return path;
+  return `${config.apiBaseUrl}${path}`;
 }
 
-async function sha256(text) {
-  const data = new TextEncoder().encode(text);
-  return crypto.subtle.digest("SHA-256", data);
-}
+const me = ref(null);
+const isLoggedIn = computed(() => Boolean(me.value));
 
-function randomString(length = 64) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
-}
-
-/**
- * Discord OAuth2 (Authorization Code + PKCE)
- * - ここでは「ログイン開始」だけ実装（Discordにリダイレクト）
- * - リダイレクト先で code を受け取り、サーバーで token 交換するのが一般的
- *   (PKCEを使う場合はクライアント完結も可能だが、運用・セキュリティ観点でバックエンド推奨)
- */
-async function loginWithDiscord() {
-  if (!config.discordClientId || !config.discordRedirectUri) {
-    alert("Discord OAuthの環境変数が未設定です（VITE_DISCORD_CLIENT_ID / VITE_DISCORD_REDIRECT_URI）");
-    return;
+async function fetchMe() {
+  try {
+    const res = await fetch(apiUrl("/api/me"), { credentials: "include" });
+    if (!res.ok) {
+      me.value = null;
+      return;
+    }
+    const json = await res.json();
+    me.value = json.user ?? null;
+  } catch {
+    me.value = null;
   }
+}
 
-  const state = randomString(32);
-  const codeVerifier = randomString(64);
-  const codeChallenge = base64UrlEncode(await sha256(codeVerifier));
+onMounted(fetchMe);
 
-  sessionStorage.setItem("discord_oauth_state", state);
-  sessionStorage.setItem("discord_pkce_verifier", codeVerifier);
+// 後者：ログイン開始はAPIへ
+function loginWithDiscord() {
+  window.location.href = apiUrl("/auth/discord/start");
+}
 
-  const params = new URLSearchParams({
-    client_id: config.discordClientId,
-    redirect_uri: config.discordRedirectUri,
-    response_type: "code",
-    scope: "identify guilds",
-    state,
-    code_challenge: codeChallenge,
-    code_challenge_method: "S256",
-    prompt: "none",
-  });
-
-  window.location.href = `https://discord.com/oauth2/authorize?${params.toString()}`;
+function goDashboard() {
+  window.location.href = "/dashboard";
 }
 
 function goInvite() {
@@ -100,7 +82,23 @@ function buyPremium() {
       </nav>
 
       <div class="headerCtas">
-        <button class="btn primary" type="button" @click="loginWithDiscord">Discordでログイン</button>
+        <button
+            v-if="!isLoggedIn"
+            class="btn primary"
+            type="button"
+            @click="loginWithDiscord"
+        >
+          Discordでログイン
+        </button>
+
+        <button
+            v-else
+            class="btn primary"
+            type="button"
+            @click="goDashboard"
+        >
+          ダッシュボード
+        </button>
       </div>
     </header>
 

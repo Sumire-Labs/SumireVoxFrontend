@@ -1,0 +1,29 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: #f7f9ff;
+    scroll-behavior: smooth;
+}
+
+:root {
+    --bg0: #f7f9ff;
+    --bg1: #eef2ff;
+    --surface: rgba(255, 255, 255, 0.72);
+    --stroke: rgba(66, 84, 140, 0.15);
+
+    --text: #1b2340;
+    --muted: rgba(27, 35, 64, 0.72);
+
+    --primary: #7b90ff;
+    --primary2: #a7b6ff;
+    --accent: #8fd5ff;
+
+    --shadow: 0 16px 40px rgba(20, 25, 50, 0.10);
+}

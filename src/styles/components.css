@@ -1,0 +1,26 @@
+.btn {
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 9px 12px;
+    font-weight: 800;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    transition: 140ms transform ease;
+}
+
+.btn.primary {
+    color: #0f1633;
+    background: linear-gradient(135deg, var(--primary2), var(--accent));
+    border-color: rgba(123, 144, 255, 0.20);
+    box-shadow: 0 12px 22px rgba(123, 144, 255, 0.22);
+}
+
+.btn.ghost {
+    background: rgba(255, 255, 255, 0.40);
+    border-color: var(--stroke);
+}

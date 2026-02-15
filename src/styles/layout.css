@@ -1,6 +1,7 @@
 .page {
     color: var(--text);
     padding-top: 14px;
+    min-height: 100vh;
     background: radial-gradient(1200px 700px at 20% 10%, rgba(167, 182, 255, 0.55), transparent 60%),
     radial-gradient(900px 600px at 80% 0%, rgba(143, 213, 255, 0.40), transparent 55%),
     linear-gradient(180deg, var(--bg0), var(--bg1));

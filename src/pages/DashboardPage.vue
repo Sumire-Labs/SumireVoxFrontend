@@ -19,7 +19,15 @@ function openGuild(guildId) {
     <HeaderBar brand-name="Sumire Vox Bot" />
 
     <div style="padding: 24px; width: min(1100px, calc(100% - 28px)); margin: 0 auto;">
-      <h1 style="margin-bottom: 12px;">Dashboard</h1>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h1 style="margin: 0;">Dashboard</h1>
+        <router-link 
+          to="/dashboard/premium" 
+          style="background: #5865f2; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: flex; align-items: center; gap: 8px;"
+        >
+          <span>💎 プレミアム管理</span>
+        </router-link>
+      </div>
 
       <p v-if="isLoading">読み込み中…</p>
 

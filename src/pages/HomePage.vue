@@ -292,12 +292,11 @@ function buyPremium() {
             <div class="planName">Premium</div>
             <div class="planPrice">¥ 1,000 / 月</div>
             <ul class="planList">
-              <li>（例）優先読み上げ / 高品質設定</li>
-              <li>（例）辞書枠の拡張</li>
-              <li>（例）サポート優先</li>
+              <li>Bot台数の増加</li>
+              <li>辞書枠の拡張</li>
+              <li>スピード・ピッチの調整</li>
             </ul>
             <button class="btn outline big" type="button" @click="buyPremium">Stripeで購入</button>
-            <div class="planNote">※価格・特典は後から差し替えできます。</div>
           </div>
 
           <div class="faq">

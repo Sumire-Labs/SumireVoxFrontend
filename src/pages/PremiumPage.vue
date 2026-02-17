@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import HeaderBar from "@/components/HeaderBar.vue";
-import { getBillingStatus, createCheckoutSession } from "@/features/billing/billingApi.js";
+import { getBillingStatus, createCheckoutSession, unboostGuild } from "@/features/billing/billingApi.js";
 
 const billingStatus = ref({
   total_slots: 0,
@@ -29,6 +29,21 @@ async function handleUpgrade() {
     window.location.href = url;
   } catch (error) {
     alert("エラーが発生しました: " + error.message);
+  } finally {
+    isProcessing.value = false;
+  }
+}
+
+async function handleUnboost(guildId) {
+  if (!confirm("このサーバーのブーストを解除しますか？\n解除すると、そのサーバーでのプレミアム特典が失われます。")) return;
+  
+  isProcessing.value = true;
+  try {
+    await unboostGuild(guildId);
+    // ステータスを再取得
+    billingStatus.value = await getBillingStatus();
+  } catch (error) {
+    alert("解除に失敗しました: " + error.message);
   } finally {
     isProcessing.value = false;
   }
@@ -115,8 +130,18 @@ async function handleUpgrade() {
               </div>
             </div>
 
-            <div class="badge" aria-label="有効">
-              Active
+            <div class="rowRight">
+              <button 
+                type="button" 
+                class="unboostBtn" 
+                @click="handleUnboost(boost.guild_id)"
+                :disabled="isProcessing"
+              >
+                解除
+              </button>
+              <div class="badge" aria-label="有効">
+                Active
+              </div>
             </div>
           </div>
         </div>
@@ -335,6 +360,34 @@ async function handleUpgrade() {
   color: rgba(15, 22, 51, 0.9);
   background: rgba(143, 213, 255, 0.35);
   border: 1px solid rgba(66, 84, 140, 0.15);
+}
+
+.rowRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unboostBtn {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.unboostBtn:hover:not(:disabled) {
+  background: #ef4444;
+  color: white;
+}
+
+.unboostBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (max-width: 920px) {

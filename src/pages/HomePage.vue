@@ -223,7 +223,7 @@ function buyPremium() {
           </article>
 
           <article class="card">
-            <h3>ボイスチャンネルの自動接続</h3>
+            <h3>ボイスチャンネルの自動接続 (Premium)</h3>
             <p>
               あらかじめ指定したボイスチャンネルにユーザーが参加した場合、自動的に接続して読み上げを開始します。
             </p>
@@ -284,19 +284,18 @@ function buyPremium() {
       <section id="premium" class="section">
         <h2 class="sectionTitle">プレミアム</h2>
         <p class="sectionLead">
-          有料プランの決済はStripeを利用します。
+          Sumire Vox をさらに便利に使うことができる有料プランです。ダッシュボードのプレミアム管理からご購入いただけます。
         </p>
 
         <div class="premium">
           <div class="plan">
             <div class="planName">Premium</div>
-            <div class="planPrice">¥ 1,000 / 月</div>
+            <div class="planPrice">¥ 500 / 月 (１ブースト)</div>
             <ul class="planList">
               <li>Bot台数の増加</li>
               <li>辞書枠の拡張</li>
-              <li>スピード・ピッチの調整</li>
+              <li>ボイスチャンネルへの自動接続</li>
             </ul>
-            <button class="btn outline big" type="button" @click="buyPremium">Stripeで購入</button>
           </div>
 
           <div class="faq">

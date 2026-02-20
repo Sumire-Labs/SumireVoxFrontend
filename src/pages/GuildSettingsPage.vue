@@ -15,7 +15,7 @@ const {
   isLoading,
   isSaving,
   error,
-  saveSettings,
+  saveSettings: saveSettingsApi,
   addWord,
   removeWord,
   refresh
@@ -35,12 +35,63 @@ const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=1469627429
 const newWord = ref("");
 const newReading = ref("");
 
+// トースト通知の状態
+const toast = ref({
+  show: false,
+  message: "",
+  type: "success" // "success" | "error"
+});
+
+let toastTimer = null;
+
+function showToast(message, type = "success") {
+  // 既存のタイマーをクリア
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+  }
+
+  toast.value = { show: true, message, type };
+
+  // 3秒後に自動で非表示
+  toastTimer = setTimeout(() => {
+    toast.value.show = false;
+  }, 3000);
+}
+
+function hideToast() {
+  toast.value.show = false;
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+  }
+}
+
+async function saveSettings() {
+  try {
+    await saveSettingsApi();
+    showToast("設定を保存しました", "success");
+  } catch (e) {
+    showToast("保存に失敗しました", "error");
+  }
+}
+
 async function handleAddWord() {
   if (!newWord.value || !newReading.value) return;
   const ok = await addWord(newWord.value, newReading.value);
   if (ok) {
     newWord.value = "";
     newReading.value = "";
+    showToast("辞書に追加しました", "success");
+  } else {
+    showToast("追加に失敗しました", "error");
+  }
+}
+
+async function handleRemoveWord(word) {
+  const ok = await removeWord(word);
+  if (ok) {
+    showToast("辞書から削除しました", "success");
+  } else {
+    showToast("削除に失敗しました", "error");
   }
 }
 </script>
@@ -48,6 +99,14 @@ async function handleAddWord() {
 <template>
   <div class="page">
     <HeaderBar brand-name="Sumire Vox Bot" />
+
+    <!-- トースト通知 -->
+    <Transition name="toast">
+      <div v-if="toast.show" class="toast" :class="toast.type" @click="hideToast">
+        <span class="toast-icon">{{ toast.type === 'success' ? '✓' : '✕' }}</span>
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+    </Transition>
 
     <div style="padding: 24px; width: min(1100px, calc(100% - 28px)); margin: 0 auto;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
@@ -226,7 +285,7 @@ async function handleAddWord() {
                 <span class="arrow">→</span>
                 <span class="reading">{{ entry.reading }}</span>
               </div>
-              <button @click="removeWord(entry.word)" class="delete-button">削除</button>
+              <button @click="handleRemoveWord(entry.word)" class="delete-button">削除</button>
             </div>
             <p v-if="dictEntries.length === 0" style="color: rgba(27,35,64,0.5); text-align: center; margin-top: 20px;">
               登録されている単語はありません
@@ -239,6 +298,83 @@ async function handleAddWord() {
 </template>
 
 <style scoped>
+/* ==================== Toast Notification ==================== */
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 14px 20px;
+  border-radius: 12px;
+
+  font-weight: 600;
+  font-size: 14px;
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.success {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #065f46;
+}
+
+.toast.error {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #991b1b;
+}
+
+.toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.toast.success .toast-icon {
+  background: #10b981;
+  color: white;
+}
+
+.toast.error .toast-icon {
+  background: #ef4444;
+  color: white;
+}
+
+.toast-message {
+  line-height: 1.4;
+}
+
+/* Toast Animation */
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px);
+}
+
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+}
+
 /* ==================== Toggle Switch (iOS Style) ==================== */
 .toggle {
   position: relative;
@@ -288,7 +424,7 @@ async function handleAddWord() {
 }
 
 .toggle input:focus + .toggle-slider {
-  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.3);
+  box-shadow: 0 0 0 3px rgba(123, 144, 255, 0.3);
 }
 
 /* Disabled state */

@@ -1,3 +1,4 @@
+<!-- GuildSettingsPage.vue -->
 <script setup>
 import { ref, computed } from "vue";
 import HeaderBar from "@/components/HeaderBar.vue";
@@ -92,7 +93,10 @@ async function handleAddWord() {
               <p>ボイスチャンネルへの自動接続を有効にします</p>
               <p v-if="!isBoosted" class="premium-hint">💎 プレミアム（1ブースト以上）限定機能です</p>
             </div>
-            <input type="checkbox" v-model="settings.auto_join" :disabled="!isBoosted" />
+            <label class="toggle" :class="{ disabled: !isBoosted }">
+              <input type="checkbox" v-model="settings.auto_join" :disabled="!isBoosted" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -100,7 +104,10 @@ async function handleAddWord() {
               <label>入退出の読み上げ</label>
               <p>ユーザーの入退出を通知します</p>
             </div>
-            <input type="checkbox" v-model="settings.read_vc_status" />
+            <label class="toggle">
+              <input type="checkbox" v-model="settings.read_vc_status" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -108,7 +115,10 @@ async function handleAddWord() {
               <label>メンション読み上げ</label>
               <p>メンションを名前で読み上げます</p>
             </div>
-            <input type="checkbox" v-model="settings.read_mention" />
+            <label class="toggle">
+              <input type="checkbox" v-model="settings.read_mention" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -116,7 +126,10 @@ async function handleAddWord() {
               <label>絵文字読み上げ</label>
               <p>絵文字を読み上げます</p>
             </div>
-            <input type="checkbox" v-model="settings.read_emoji" />
+            <label class="toggle">
+              <input type="checkbox" v-model="settings.read_emoji" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -124,7 +137,10 @@ async function handleAddWord() {
               <label>さん付け</label>
               <p>ユーザー名の後に「さん」を付けます</p>
             </div>
-            <input type="checkbox" v-model="settings.add_suffix" />
+            <label class="toggle">
+              <input type="checkbox" v-model="settings.add_suffix" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -132,7 +148,10 @@ async function handleAddWord() {
               <label>ローマ字読み</label>
               <p>ローマ字を読み上げます</p>
             </div>
-            <input type="checkbox" v-model="settings.read_romaji" />
+            <label class="toggle">
+              <input type="checkbox" v-model="settings.read_romaji" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -140,7 +159,10 @@ async function handleAddWord() {
               <label>添付ファイル読み上げ</label>
               <p>添付ファイルの存在を読み上げます</p>
             </div>
-            <input type="checkbox" v-model="settings.read_attachments" />
+            <label class="toggle">
+              <input type="checkbox" v-model="settings.read_attachments" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -148,7 +170,10 @@ async function handleAddWord() {
               <label>コードブロック省略</label>
               <p>コードブロックを省略します</p>
             </div>
-            <input type="checkbox" v-model="settings.skip_code_blocks" />
+            <label class="toggle">
+              <input type="checkbox" v-model="settings.skip_code_blocks" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -156,7 +181,10 @@ async function handleAddWord() {
               <label>URL省略</label>
               <p>URLを省略します</p>
             </div>
-            <input type="checkbox" v-model="settings.skip_urls" />
+            <label class="toggle">
+              <input type="checkbox" v-model="settings.skip_urls" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="setting-item">
@@ -211,6 +239,69 @@ async function handleAddWord() {
 </template>
 
 <style scoped>
+/* ==================== Toggle Switch (iOS Style) ==================== */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(120, 120, 128, 0.16);
+  border-radius: 31px;
+  transition: background-color 0.25s ease;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 27px;
+  width: 27px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.25s ease;
+}
+
+.toggle input:checked + .toggle-slider {
+  background-color: var(--primary);
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.toggle input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.3);
+}
+
+/* Disabled state */
+.toggle.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.toggle.disabled .toggle-slider {
+  cursor: not-allowed;
+}
+
+/* ==================== Existing Styles ==================== */
 .premium-hint {
   font-size: 12px;
   color: #8547ff;
@@ -258,6 +349,12 @@ async function handleAddWord() {
 
 .setting-item:last-child {
   border-bottom: none;
+}
+
+.setting-info {
+  flex: 1;
+  min-width: 0;
+  padding-right: 16px;
 }
 
 .setting-info label {

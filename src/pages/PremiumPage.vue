@@ -249,7 +249,7 @@ function getInviteUrl(botId) {
 
         <div v-else-if="billingStatus.manageable_guilds.length === 0" class="listEmpty">
           <div class="emptyIcon">📥</div>
-          <p class="muted">管理可能なサーバー（Bot導入済み）が見つかりません。</p>
+          <p class="muted">表示可能なサーバーが見つかりません。</p>
           <p class="emptyHint">サーバーにBotを招待すると、ここに表示されます。</p>
           <a :href="getInviteUrl(billingConfig.client_id_0 || '1469627429008969741')" target="_blank" class="btn primary inviteAllBtn">
             🌸 Botを招待する
@@ -273,6 +273,7 @@ function getInviteUrl(botId) {
                   </span>
                   <span v-else class="inactiveBoost">ブースト未適用</span>
                   <span v-if="!guild.bot_in_guild" class="botWarning">⚠️ ボット不在</span>
+                  <span v-if="!guild.is_manageable && guild.bot_in_guild" class="memberBadge">👤 一般メンバー</span>
                 </div>
               </div>
             </div>
@@ -610,6 +611,15 @@ function getInviteUrl(botId) {
 .botWarning {
   color: #f59e0b;
   font-weight: bold;
+}
+
+.memberBadge {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .actionGroup {

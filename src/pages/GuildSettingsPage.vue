@@ -39,20 +39,18 @@ const newReading = ref("");
 const toast = ref({
   show: false,
   message: "",
-  type: "success" // "success" | "error"
+  type: "success"
 });
 
 let toastTimer = null;
 
 function showToast(message, type = "success") {
-  // 既存のタイマーをクリア
   if (toastTimer) {
     clearTimeout(toastTimer);
   }
 
   toast.value = { show: true, message, type };
 
-  // 3秒後に自動で非表示
   toastTimer = setTimeout(() => {
     toast.value.show = false;
   }, 3000);
@@ -109,11 +107,8 @@ async function handleRemoveWord(word) {
     </Transition>
 
     <div style="padding: 24px; width: min(1100px, calc(100% - 28px)); margin: 0 auto;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div style="margin-bottom: 12px;">
         <h1 style="margin: 0;">サーバー設定</h1>
-        <button v-if="settings" @click="saveSettings" :disabled="isSaving" class="save-button" style="margin-left: 12px;">
-          {{ isSaving ? '保存中...' : '設定を保存' }}
-        </button>
       </div>
 
       <p style="color: rgba(27,35,64,0.72); margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
@@ -144,7 +139,13 @@ async function handleRemoveWord(word) {
 
       <div v-else class="settings-grid">
         <section class="card">
-          <h2 style="margin-bottom: 16px;">読み上げ設定</h2>
+          <div class="card-header">
+            <h2>読み上げ設定</h2>
+            <button @click="saveSettings" :disabled="isSaving" class="save-button">
+              <span class="save-icon">💾</span>
+              {{ isSaving ? '保存中...' : '設定を保存' }}
+            </button>
+          </div>
 
           <div class="setting-item">
             <div class="setting-info">
@@ -375,6 +376,58 @@ async function handleRemoveWord(word) {
   transform: translateX(-50%) translateY(-10px);
 }
 
+/* ==================== Card Header with Save Button ==================== */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.card-header h2 {
+  margin: 0;
+}
+
+.save-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #0369a1;
+
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+  transition: all 0.2s ease;
+}
+
+.save-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #bae6fd, #7dd3fc);
+  border-color: rgba(56, 189, 248, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+}
+
+.save-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.save-icon {
+  font-size: 16px;
+}
+
 /* ==================== Toggle Switch (iOS Style) ==================== */
 .toggle {
   position: relative;
@@ -465,6 +518,15 @@ async function handleRemoveWord(word) {
   .settings-grid {
     grid-template-columns: 1fr;
   }
+
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .save-button {
+    justify-content: center;
+  }
 }
 
 .card {
@@ -503,25 +565,6 @@ async function handleRemoveWord(word) {
   font-size: 13px;
   color: rgba(27, 35, 64, 0.72);
   margin: 0;
-}
-
-.save-button {
-  background: #4f46e5;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.save-button:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-.save-button:hover:not(:disabled) {
-  background: #4338ca;
 }
 
 .invite-card {

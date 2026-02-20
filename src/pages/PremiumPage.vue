@@ -203,7 +203,11 @@ function getInviteUrl(botId) {
 
         <div v-else-if="billingStatus.manageable_guilds.length === 0" class="listEmpty">
           <div class="emptyIcon">📥</div>
-          <p class="muted">管理可能なサーバーが見つかりません。</p>
+          <p class="muted">管理可能なサーバー（Bot導入済み）が見つかりません。</p>
+          <p class="emptyHint">サーバーにBotを招待すると、ここに表示されます。</p>
+          <a :href="getInviteUrl(billingConfig.client_id_0 || '1469627429008969741')" target="_blank" class="btn primary inviteAllBtn">
+            🌸 Botを招待する
+          </a>
         </div>
 
         <div v-else class="rows">
@@ -433,6 +437,17 @@ function getInviteUrl(botId) {
 .emptyIcon {
   font-size: 48px;
   margin-bottom: 12px;
+}
+
+.inviteAllBtn {
+  margin-top: 16px;
+  text-decoration: none;
+}
+
+.emptyHint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
 }
 
 .row {

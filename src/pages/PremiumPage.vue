@@ -191,6 +191,52 @@ function getInviteUrl(botId) {
         </div>
       </section>
 
+      <!-- 特典一覧セクション -->
+      <section class="benefitsSection">
+        <h2 class="sectionTitle">ブースト特典</h2>
+        <div class="benefitsGrid">
+          <div class="benefitCard">
+            <div class="benefitHeader">
+              <span class="benefitLevel">0 Boost</span>
+              <span class="benefitName">無料版</span>
+            </div>
+            <ul class="benefitList">
+              <li>📝 文字数制限: 50文字</li>
+              <li>📖 辞書上限: 10個</li>
+              <li>🎭 キャラクター変更可能</li>
+              <li class="disabled">🔇 自動接続不可</li>
+              <li class="disabled">🚫 速度・ピッチ変更不可</li>
+            </ul>
+          </div>
+
+          <div class="benefitCard featured">
+            <div class="benefitHeader">
+              <span class="benefitLevel">1 Boost</span>
+              <span class="benefitName">プレミアム機能</span>
+            </div>
+            <ul class="benefitList">
+              <li>🚀 文字数制限: <strong>200文字</strong> まで緩和</li>
+              <li>📚 辞書上限: <strong>100個</strong> まで拡張</li>
+              <li>⚡ <strong>速度・ピッチ変更</strong> 解放</li>
+              <li>🤖 <strong>自動接続機能</strong> 解放</li>
+            </ul>
+          </div>
+
+          <div class="benefitCard">
+            <div class="benefitHeader">
+              <span class="benefitLevel">2+ Boosts</span>
+              <span class="benefitName">マルチインスタンス</span>
+            </div>
+            <ul class="benefitList">
+              <li>👯 <strong>2台目のBot</strong> が招待可能 (2 Boosts)</li>
+              <li>👯 <strong>3台目のBot</strong> が招待可能 (3 Boosts)</li>
+              <li>以降、1ブーストごとに1台追加可能</li>
+              <li>※各Botは別々のチャンネルで動作可能</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <!-- サーバーリスト -->
       <section class="card listCard">
         <div class="listHeader">
@@ -448,6 +494,66 @@ function getInviteUrl(botId) {
   font-size: 13px;
   color: var(--muted);
   margin-top: 4px;
+}
+
+.benefitsSection {
+  margin-bottom: 24px;
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.benefitCard {
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.benefitCard.featured {
+  border: 2px solid #8547ff;
+  background: linear-gradient(to bottom, rgba(133, 71, 255, 0.05), var(--surface));
+  transform: translateY(-4px);
+}
+
+.benefitHeader {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.benefitLevel {
+  font-size: 12px;
+  font-weight: 900;
+  color: #8547ff;
+  text-transform: uppercase;
+}
+
+.benefitName {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.benefitList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.benefitList li.disabled {
+  color: var(--muted);
+  text-decoration: line-through;
+  opacity: 0.6;
 }
 
 .row {

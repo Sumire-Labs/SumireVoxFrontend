@@ -6,9 +6,9 @@ import { useAuth } from "@/features/auth/useAuth.js";
 const router = useRouter();
 const { isLoggedIn, refreshMe, logout } = useAuth();
 
-const props = defineProps({
-  brandName: { type: String, required: true },
-});
+const BRAND = {
+  name: "Sumire Vox Bot",
+};
 
 onMounted(refreshMe);
 
@@ -28,15 +28,15 @@ async function onLogout() {
 
 <template>
   <header class="header">
-    <a class="logo" href="/" aria-label="Sumire Vox Bot">
+    <router-link class="logo" to="/" aria-label="Sumire Vox Bot">
       <span class="logoMark" aria-hidden="true"></span>
-      <span class="logoText">{{ props.brandName }}</span>
-    </a>
+      <span class="logoText">{{ BRAND.name }}</span>
+    </router-link>
 
     <nav class="nav">
       <router-link to="/features">機能</router-link>
       <a href="/#howto">使い方</a>
-      <a href="/#premium">プレミアム</a>
+      <router-link to="/premium">プレミアム</router-link>
     </nav>
 
     <div class="headerCtas">

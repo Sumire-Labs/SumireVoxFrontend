@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import HeaderBar from "@/components/HeaderBar.vue";
 import { useGuildSettings } from "@/features/guilds/useGuildSettings.js";
 

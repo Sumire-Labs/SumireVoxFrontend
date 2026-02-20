@@ -328,8 +328,9 @@ function buyPremium() {
         <div class="footerNav">
           <div class="footerCol">
             <div class="footerColTitle">ページ一覧</div>
+            <router-link to="/features">機能一覧</router-link>
             <a href="#premium">プレミアム</a>
-            <a href="#">ダッシュボード</a>
+            <router-link to="/dashboard">ダッシュボード</router-link>
             <a href="#howto">コマンド</a>
           </div>
           <div class="footerCol">

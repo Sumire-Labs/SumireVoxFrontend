@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import HeaderBar from "@/components/HeaderBar.vue";
 import { useGuilds } from "@/features/guilds/useGuilds.js";
@@ -7,10 +7,17 @@ import { useGuilds } from "@/features/guilds/useGuilds.js";
 const router = useRouter();
 const { guilds, hasGuilds, isLoading, refreshGuilds } = useGuilds();
 
+const invitedGuilds = computed(() => guilds.value.filter(g => g.bot_in_guild));
+const hasInvitedGuilds = computed(() => invitedGuilds.value.length > 0);
+
 onMounted(refreshGuilds);
 
 function openGuild(guildId) {
   router.push(`/dashboard/guilds/${guildId}`);
+}
+
+function handleGuildClick(guild) {
+  openGuild(guild.id);
 }
 </script>
 
@@ -31,93 +38,182 @@ function openGuild(guildId) {
 
       <p v-if="isLoading">読み込み中…</p>
 
-      <p v-else-if="!hasGuilds" style="color: rgba(27,35,64,0.72);">
-        管理できるサーバーがありません。
-      </p>
+      <div v-else-if="!hasInvitedGuilds" class="listEmpty">
+        <div class="emptyIcon">📥</div>
+        <p class="muted">管理可能なサーバー（Bot導入済み）が見つかりません。</p>
+        <p class="emptyHint">サーバーにBotを招待すると、ここに表示されます。</p>
+        <router-link to="/dashboard/premium" class="btn primary inviteAllBtn">
+          💎 プレミアム管理で確認
+        </router-link>
+      </div>
 
-      <div v-else class="guildList">
-        <button
-            v-for="g in guilds"
+      <div v-else class="rows">
+        <div
+            v-for="g in invitedGuilds"
             :key="g.id"
-            type="button"
-            class="guildCard"
-            @click="openGuild(g.id)"
+            class="row"
+            @click="handleGuildClick(g)"
         >
-          <img
-              v-if="g.icon"
-              :src="`https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png`"
-              class="guildIcon"
-              alt=""
-          />
-          <div v-else class="guildIcon placeholder" aria-hidden="true"></div>
-          <div class="guildMeta">
-            <div class="guildName">{{ g.name }}</div>
-            <div class="guildId">ID: {{ g.id }}</div>
+          <div class="rowLeft">
+            <img
+                v-if="g.icon"
+                :src="`https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png`"
+                class="avatarImg"
+                alt=""
+            />
+            <div v-else class="avatar" aria-hidden="true">
+              {{ g.name.charAt(0) }}
+            </div>
+            <div class="rowMeta">
+              <div class="rowTitle">{{ g.name }}</div>
+              <div class="rowId">ID: {{ g.id }}</div>
+            </div>
           </div>
-        </button>
+          
+          <div class="rowRight">
+            <button class="settings-btn">
+              ⚙️ 設定を開く
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.guildList {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.rows {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   margin-top: 12px;
 }
 
-.guildCard {
-  text-align: left;
+.row {
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
   align-items: center;
-
-  border: 1px solid rgba(66, 84, 140, 0.15);
+  padding: 16px 20px;
+  border: 1px solid var(--stroke);
   border-radius: 16px;
-  padding: 12px 12px;
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--surface);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.guildCard:hover {
+.row:hover {
   transform: translateY(-1px);
-  transition: 140ms transform ease;
+  border-color: rgba(123, 144, 255, 0.3);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
-.guildIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(167, 182, 255, 0.65), rgba(143, 213, 255, 0.45));
-  border: 1px solid rgba(66, 84, 140, 0.15);
-  object-fit: cover;
-}
-
-.guildIcon.placeholder {
-  background: linear-gradient(135deg, rgba(167, 182, 255, 0.65), rgba(143, 213, 255, 0.45));
-}
-
-.guildMeta {
+.rowLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
 }
 
-.guildName {
-  font-weight: 900;
-  color: rgba(27, 35, 64, 1);
+.avatar, .avatarImg {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  object-fit: cover;
 }
 
-.guildId {
+.avatar {
+  background: linear-gradient(135deg, var(--primary2), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 900;
+  font-size: 20px;
+  border: 1px solid var(--stroke);
+}
+
+.avatarImg img {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+}
+
+.rowMeta {
+  min-width: 0;
+}
+
+.rowTitle {
+  font-weight: 900;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.rowId {
   margin-top: 2px;
   font-size: 12px;
-  color: rgba(27, 35, 64, 0.72);
-  word-break: break-all;
+  color: var(--muted);
 }
 
-@media (max-width: 920px) {
-  .guildList {
-    grid-template-columns: 1fr;
+.settings-btn {
+  background: white;
+  border: 1px solid var(--stroke);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.row:hover .settings-btn {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.listEmpty {
+  padding: 60px 20px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  border-radius: 20px;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.emptyHint {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.inviteAllBtn {
+  text-decoration: none;
+  display: inline-block;
+}
+
+@media (max-width: 600px) {
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .rowRight {
+    width: 100%;
+  }
+  .settings-btn {
+    width: 100%;
   }
 }
 </style>

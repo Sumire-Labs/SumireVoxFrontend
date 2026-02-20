@@ -34,9 +34,9 @@ async function onLogout() {
     </a>
 
     <nav class="nav">
-      <a href="#features">機能</a>
-      <a href="#howto">使い方</a>
-      <a href="#premium">プレミアム</a>
+      <router-link to="/features">機能</router-link>
+      <a href="/#howto">使い方</a>
+      <a href="/#premium">プレミアム</a>
     </nav>
 
     <div class="headerCtas">

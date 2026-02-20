@@ -10,6 +10,7 @@ const props = defineProps({
 const {
   settings,
   dictEntries,
+  billingStatus,
   isLoading,
   isSaving,
   error,
@@ -18,6 +19,15 @@ const {
   removeWord,
   refresh
 } = useGuildSettings(props.id);
+
+const isBoosted = computed(() => {
+  if (!billingStatus.value) return false;
+  const guild = billingStatus.value.manageable_guilds?.find(g => String(g.id) === String(props.id));
+  return (guild?.boost_count || 0) >= 1;
+});
+
+const dictLimit = computed(() => isBoosted.value ? 100 : 10);
+const charLimit = computed(() => isBoosted.value ? 200 : 50);
 
 const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=1469627429008969741&permissions=3145728&scope=bot%20applications.commands&guild_id=${props.id}&disable_guild_select=true`;
 
@@ -80,8 +90,9 @@ async function handleAddWord() {
             <div class="setting-info">
               <label>自動接続</label>
               <p>ボイスチャンネルへの自動接続を有効にします</p>
+              <p v-if="!isBoosted" class="premium-hint">💎 プレミアム（1ブースト以上）限定機能です</p>
             </div>
-            <input type="checkbox" v-model="settings.auto_join" />
+            <input type="checkbox" v-model="settings.auto_join" :disabled="!isBoosted" />
           </div>
 
           <div class="setting-item">
@@ -151,19 +162,33 @@ async function handleAddWord() {
           <div class="setting-item">
             <div class="setting-info">
               <label>文字数制限</label>
-              <p>読み上げる文字数の上限を設定します (10-500)</p>
+              <p>読み上げる文字数の上限を設定します</p>
+              <p class="premium-hint">
+                {{ isBoosted ? '💎 プレミアム適用中: 最大200文字' : '📝 無料版制限: 50文字まで' }}
+              </p>
             </div>
-            <input type="number" v-model.number="settings.max_chars" min="10" max="500" class="number-input" />
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="number" v-model.number="settings.max_chars" :min="10" :max="charLimit" class="number-input" />
+              <span style="font-size: 14px;">文字</span>
+            </div>
           </div>
         </section>
 
         <section class="card">
-          <h2 style="margin-bottom: 16px;">辞書編集</h2>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+            <h2 style="margin: 0;">辞書編集</h2>
+            <span class="premium-hint">{{ dictEntries.length }} / {{ dictLimit }} 個登録済み</span>
+          </div>
+
+          <div v-if="dictEntries.length >= dictLimit" class="limit-warning">
+            ⚠️ 辞書登録数が上限（{{ dictLimit }}個）に達しています。
+            <router-link v-if="!isBoosted" to="/dashboard/premium" style="color: #8547ff;">プレミアムプランで拡張</router-link>
+          </div>
 
           <div class="add-word-form">
-            <input v-model="newWord" placeholder="単語" class="text-input" />
-            <input v-model="newReading" placeholder="読み" class="text-input" />
-            <button @click="handleAddWord" class="add-button">追加</button>
+            <input v-model="newWord" placeholder="単語" class="text-input" :disabled="dictEntries.length >= dictLimit" />
+            <input v-model="newReading" placeholder="読み" class="text-input" :disabled="dictEntries.length >= dictLimit" />
+            <button @click="handleAddWord" class="add-button" :disabled="dictEntries.length >= dictLimit">追加</button>
           </div>
 
           <div class="dict-list">
@@ -186,6 +211,23 @@ async function handleAddWord() {
 </template>
 
 <style scoped>
+.premium-hint {
+  font-size: 12px;
+  color: #8547ff;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.limit-warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -4,6 +4,7 @@ import { getGuildSettings, updateGuildSettings, getGuildDict, addDictEntry, dele
 export function useGuildSettings(guildId) {
     const settings = ref(null);
     const dictEntries = ref([]);
+    const billingStatus = ref(null); // 追加
     const isLoading = ref(false);
     const isSaving = ref(false);
     const error = ref(null);
@@ -12,12 +13,15 @@ export function useGuildSettings(guildId) {
         isLoading.value = true;
         error.value = null;
         try {
-            const [s, d] = await Promise.all([
+            const { getBillingStatus } = await import("@/features/billing/billingApi.js");
+            const [s, d, b] = await Promise.all([
                 getGuildSettings(guildId),
-                getGuildDict(guildId)
+                getGuildDict(guildId),
+                getBillingStatus() // 追加
             ]);
             settings.value = s;
             dictEntries.value = d;
+            billingStatus.value = b; // 追加
         } catch (e) {
             console.error(e);
             error.value = e.message;
@@ -61,6 +65,7 @@ export function useGuildSettings(guildId) {
     return {
         settings,
         dictEntries,
+        billingStatus, // 追加
         isLoading,
         isSaving,
         error,

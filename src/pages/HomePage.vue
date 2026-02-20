@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import HeaderBar from "@/components/HeaderBar.vue";
 
 const BRAND = {
   name: "Sumire Vox Bot",
@@ -69,38 +70,7 @@ function buyPremium() {
 
 <template>
   <div class="page">
-    <header class="header">
-      <a class="logo" href="#" aria-label="Sumire Vox Bot">
-        <span class="logoMark" aria-hidden="true"></span>
-        <span class="logoText">{{ BRAND.name }}</span>
-      </a>
-
-      <nav class="nav">
-        <a href="#features">機能</a>
-        <a href="#howto">使い方</a>
-        <a href="#premium">プレミアム</a>
-      </nav>
-
-      <div class="headerCtas">
-        <button
-            v-if="!isLoggedIn"
-            class="btn primary"
-            type="button"
-            @click="loginWithDiscord"
-        >
-          Discordでログイン
-        </button>
-
-        <button
-            v-else
-            class="btn primary"
-            type="button"
-            @click="goDashboard"
-        >
-          ダッシュボード
-        </button>
-      </div>
-    </header>
+    <HeaderBar />
 
     <main id="top" class="main">
       <section class="hero">
@@ -329,9 +299,9 @@ function buyPremium() {
           <div class="footerCol">
             <div class="footerColTitle">ページ一覧</div>
             <router-link to="/features">機能一覧</router-link>
-            <a href="#premium">プレミアム</a>
+            <router-link to="/premium">プレミアム</router-link>
             <router-link to="/dashboard">ダッシュボード</router-link>
-            <a href="#howto">コマンド</a>
+            <a href="/#howto">コマンド</a>
           </div>
           <div class="footerCol">
             <div class="footerColTitle">その他のリンク</div>
@@ -352,71 +322,6 @@ function buyPremium() {
 </template>
 
 <style scoped>
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-
-  width: min(1100px, calc(100% - 28px));
-  margin: 14px auto 0;
-  padding: 12px 14px;
-
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  background: var(--surface);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--stroke);
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(20, 25, 50, 0.06);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: inherit;
-  font-weight: 700;
-}
-
-.logoMark {
-  width: 28px;
-  height: 28px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--primary2), var(--accent));
-  box-shadow: 0 10px 20px rgba(123, 144, 255, 0.25);
-}
-
-.logoText {
-  letter-spacing: 0.2px;
-}
-
-.nav {
-  margin-left: auto;
-  display: flex;
-  gap: 14px;
-}
-
-.nav a {
-  text-decoration: none;
-  color: var(--muted);
-  font-weight: 600;
-  padding: 8px 10px;
-  border-radius: 10px;
-}
-
-.nav a:hover {
-  background: rgba(123, 144, 255, 0.10);
-  color: var(--text);
-}
-
-.headerCtas {
-  display: flex;
-  gap: 10px;
-}
-
 .main {
   width: min(1100px, calc(100% - 28px));
   margin: 0 auto;

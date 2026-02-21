@@ -2,6 +2,7 @@
 import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import HeaderBar from "@/components/HeaderBar.vue";
+import FooterBar from "@/components/FooterBar.vue";
 import { useGuilds } from "@/features/guilds/useGuilds.js";
 
 const router = useRouter();
@@ -78,6 +79,7 @@ function handleGuildClick(guild) {
         </div>
       </div>
     </div>
+    <FooterBar />
   </div>
 </template>
 

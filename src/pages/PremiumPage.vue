@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import HeaderBar from "@/components/HeaderBar.vue";
+import FooterBar from "@/components/FooterBar.vue";
 import { 
   getBillingStatus, 
   createCheckoutSession, 
@@ -328,6 +329,7 @@ function getInviteUrl(botId) {
         </div>
       </section>
     </main>
+    <FooterBar />
   </div>
 </template>
 

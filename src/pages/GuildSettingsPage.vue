@@ -2,6 +2,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import HeaderBar from "@/components/HeaderBar.vue";
+import FooterBar from "@/components/FooterBar.vue";
 import { useGuildSettings } from "@/features/guilds/useGuildSettings.js";
 
 const props = defineProps({
@@ -295,6 +296,7 @@ async function handleRemoveWord(word) {
         </section>
       </div>
     </div>
+    <FooterBar />
   </div>
 </template>
 

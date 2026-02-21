@@ -1,5 +1,6 @@
 <script setup>
 import HeaderBar from "@/components/HeaderBar.vue";
+import FooterBar from "@/components/FooterBar.vue";
 </script>
 
 <template>
@@ -10,5 +11,6 @@ import HeaderBar from "@/components/HeaderBar.vue";
       <h1>404</h1>
       <p>ページが見つかりません。</p>
     </div>
+    <FooterBar />
   </div>
 </template>

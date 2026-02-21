@@ -86,7 +86,6 @@ async function onLogout() {
   display: flex;
   align-items: center;
   gap: 10px;
-  text-decoration: none;
   color: inherit;
   font-weight: 700;
 }
@@ -110,7 +109,6 @@ async function onLogout() {
 }
 
 .nav a {
-  text-decoration: none;
   color: var(--muted);
   font-weight: 600;
   padding: 8px 10px;

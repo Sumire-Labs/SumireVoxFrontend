@@ -216,15 +216,15 @@ function goInvite() {
           <div class="faq">
             <h3>よくある質問</h3>
             <details>
-              <summary>Discordログインは何のため？</summary>
+              <summary>プレミアムにすると何が変わりますか？</summary>
               <p>
-                サーバー設定の管理画面（読み上げチャンネル、辞書管理など）を実装する際に必要になります。
+                無料プランの基本機能に加えて、より便利な拡張機能や上限の引き上げなどが利用できるようになります。
               </p>
             </details>
             <details>
-              <summary>決済後の特典反映はどうする？</summary>
+              <summary>購入後、いつ反映されますか？</summary>
               <p>
-                Stripe Webhookで「購入完了」を受け、DBに紐付け、Discordロール付与などを自動化する構成が一般的です。
+                通常は購入完了後まもなく反映されます。反映に時間がかかる場合は、しばらく待ってから画面の再読み込みをお試しください。
               </p>
             </details>
           </div>

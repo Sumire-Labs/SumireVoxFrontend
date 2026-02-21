@@ -35,7 +35,6 @@ async function onLogout() {
 
     <nav class="nav">
       <router-link to="/features">機能</router-link>
-      <a href="/#howto">使い方</a>
       <router-link to="/premium">プレミアム</router-link>
     </nav>
 

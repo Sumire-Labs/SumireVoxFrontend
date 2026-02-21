@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "@/features/auth/useAuth.js";
+import logo from "@/assets/logo.png";
 
 const router = useRouter();
 const { isLoggedIn, refreshMe, logout } = useAuth();
@@ -29,7 +30,7 @@ async function onLogout() {
 <template>
   <header class="header">
     <router-link class="logo" to="/" aria-label="Sumire Vox Bot">
-      <span class="logoMark" aria-hidden="true"></span>
+      <img :src="logo" alt="Sumire Vox Bot Logo" class="logoMark" />
       <span class="logoText">{{ BRAND.name }}</span>
     </router-link>
 
@@ -90,10 +91,10 @@ async function onLogout() {
 }
 
 .logoMark {
-  width: 28px;
-  height: 28px;
+  width: 45px;
+  height: 45px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--primary2), var(--accent));
+  object-fit: cover;
   box-shadow: 0 10px 20px rgba(123, 144, 255, 0.25);
 }
 

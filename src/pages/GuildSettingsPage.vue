@@ -96,7 +96,7 @@ async function handleRemoveWord(word) {
 
 <template>
   <div class="page">
-    <HeaderBar brand-name="Sumire Vox Bot" />
+    <HeaderBar />
 
     <!-- トースト通知 -->
     <Transition name="toast">
@@ -112,7 +112,7 @@ async function handleRemoveWord(word) {
       </div>
 
       <p style="color: rgba(27,35,64,0.72); margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
-        <router-link to="/dashboard" style="color: #4f46e5; text-decoration: none;">&larr; ダッシュボードに戻る</router-link>
+        <router-link to="/dashboard" style="color: #4f46e5;">&larr; ダッシュボードに戻る</router-link>
         <span style="color: rgba(66, 84, 140, 0.3);">|</span>
         <span>Guild ID: {{ props.id }}</span>
       </p>

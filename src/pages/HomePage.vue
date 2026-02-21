@@ -1,5 +1,4 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
 import HeaderBar from "@/components/HeaderBar.vue";
 
 const BRAND = {
@@ -7,64 +6,14 @@ const BRAND = {
   tagline: "VOICEVOXで、Discordの会話をもっと楽しく。",
 };
 
-const config = {
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL, // 例: https://api.sumirevox.com（開発では空でもOK）
-  discordInviteUrl: import.meta.env.VITE_DISCORD_INVITE_URL,
-  stripeCheckoutUrl: import.meta.env.VITE_STRIPE_CHECKOUT_URL,
-};
-
-const isConfigured = computed(() => {
-  return Boolean(config.discordInviteUrl);
-});
-
-function apiUrl(path) {
-  if (import.meta.env.DEV) return path;
-  if (!config.apiBaseUrl) return path;
-  return `${config.apiBaseUrl}${path}`;
-}
-
-const me = ref(null);
-const isLoggedIn = computed(() => Boolean(me.value));
-
-async function fetchMe() {
-  try {
-    const res = await fetch(apiUrl("/api/me"), { credentials: "include" });
-    if (!res.ok) {
-      me.value = null;
-      return;
-    }
-    const json = await res.json();
-    me.value = json.user ?? null;
-  } catch {
-    me.value = null;
-  }
-}
-
-onMounted(fetchMe);
-
-// 後者：ログイン開始はAPIへ
-function loginWithDiscord() {
-  window.location.href = apiUrl("/auth/discord/start");
-}
-
-function goDashboard() {
-  window.location.href = "/dashboard";
-}
+const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL;
 
 function goInvite() {
-  if (!config.discordInviteUrl) {
+  if (!discordInviteUrl) {
     alert("招待URLが未設定です（VITE_DISCORD_INVITE_URL）");
     return;
   }
-  window.open(config.discordInviteUrl, "_blank", "noopener,noreferrer");
-}
-
-function buyPremium() {
-  if (!config.stripeCheckoutUrl) {
-    alert("Stripeの購入URLが未設定です（VITE_STRIPE_CHECKOUT_URL）");
-    return;
-  }
-  window.open(config.stripeCheckoutUrl, "_blank", "noopener,noreferrer");
+  window.open(discordInviteUrl, "_blank", "noopener,noreferrer");
 }
 </script>
 
@@ -86,16 +35,11 @@ function buyPremium() {
 
           <div class="heroButtons">
             <button class="btn primary big" type="button" @click="goInvite">サーバーに導入</button>
-            <button class="btn outline big" type="button" @click="buyPremium">プレミアムを購入</button>
+            <router-link to="/features" class="btn outline big">機能を見る</router-link>
           </div>
-
-          <p class="note" v-if="!isConfigured">
-            ※ 現在は環境変数が未設定のため、ボタンが正しく動きません（下の手順を参照）
-          </p>
         </div>
 
         <div class="heroRight" aria-hidden="true">
-          <!-- Discord風 読み上げプレビュー（作り直し） -->
           <div class="dPreview" role="img" aria-label="Discord風の読み上げプレビュー">
             <div class="dChrome">
               <div class="dTopDots" aria-hidden="true">
@@ -887,7 +831,6 @@ details p {
 }
 
 .footerCol a {
-  text-decoration: none;
   color: var(--muted);
   font-size: 14px;
   font-weight: 600;
@@ -898,7 +841,12 @@ details p {
   color: var(--primary);
 }
 
+.btn {
+  text-decoration: none;
+}
+
 .btn.outline {
+  display: inline-block;
   background: transparent;
   border-color: rgba(123, 144, 255, 0.30);
 }

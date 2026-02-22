@@ -2,6 +2,11 @@
 const BRAND = {
   name: "Sumire Vox Bot",
 };
+
+const LINKS = [
+  { name: "Discord", href: "https://discord.gg/8RzjWAvUUt" },
+  { name: "GitHub", href: "https://github.com/Sumire-Labs" },
+];
 </script>
 
 <template>
@@ -20,13 +25,10 @@ const BRAND = {
           <router-link to="/features">機能一覧</router-link>
           <router-link to="/premium">プレミアム</router-link>
           <router-link to="/dashboard">ダッシュボード</router-link>
-          <a href="/#howto">コマンド</a>
         </div>
         <div class="footerCol">
           <div class="footerColTitle">その他のリンク</div>
-          <a href="#" target="_blank" rel="noopener">X</a>
-          <a href="#" target="_blank" rel="noopener">Discord</a>
-          <a href="#" target="_blank" rel="noopener">GitHub</a>
+          <a v-for="link in LINKS" :href="link.href" target="_blank" rel="noopener">{{ link.name }}</a>
         </div>
         <div class="footerCol">
           <div class="footerColTitle">規約とポリシー</div>

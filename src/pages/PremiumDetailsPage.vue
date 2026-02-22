@@ -106,9 +106,9 @@ function loginWithDiscord() {
         </p>
 
         <div class="benefitsGrid">
-          <div 
-            v-for="group in BENEFIT_GROUPS" 
-            :key="group.name" 
+          <div
+            v-for="group in BENEFIT_GROUPS"
+            :key="group.name"
             class="benefitCard"
             :class="{ 'featured': group.featured }"
           >

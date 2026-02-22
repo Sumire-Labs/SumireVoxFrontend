@@ -100,7 +100,6 @@ const COMMANDS = [
           <div v-for="cmd in COMMANDS" :key="cmd.name" class="commandItem">
             <div class="commandHeader">
               <code class="commandName">{{ cmd.name }}</code>
-              <span class="commandUsage">{{ cmd.usage }}</span>
             </div>
             <p class="commandDesc">{{ cmd.description }}</p>
           </div>

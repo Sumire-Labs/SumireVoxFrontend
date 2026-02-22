@@ -1,6 +1,6 @@
 <!-- GuildSettingsPage.vue -->
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import HeaderBar from "@/components/HeaderBar.vue";
 import FooterBar from "@/components/FooterBar.vue";
 import { useGuildSettings } from "@/features/guilds/useGuildSettings.js";
@@ -63,6 +63,19 @@ function hideToast() {
     clearTimeout(toastTimer);
   }
 }
+
+// 文字数制限のバリデーション
+watch(
+    () => settings.value?.max_chars,
+    (newValue, oldValue) => {
+      if (!settings.value || oldValue === undefined) return;
+
+      if (!isBoosted.value && newValue > 50) {
+        settings.value.max_chars = 50;
+        showToast("プレミアム（1ブースト以上）が有効ではないため、51文字以上は設定できません", "error");
+      }
+    }
+);
 
 async function saveSettings() {
   try {

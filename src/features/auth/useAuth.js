@@ -1,10 +1,11 @@
-import { computed, ref } from "vue";
-import { getMe, logout as logoutApi } from "./authApi.js";
+// src/features/auth/useAuth.js
 
-// アプリ全体で共有する状態（このファイルが1回だけ評価される前提）
+import { ref, computed } from "vue";
+import { getMe, logout as logoutApi, logoutAll as logoutAllApi } from "./authApi.js";
+
 const me = ref(null);
 const isLoading = ref(false);
-const isLoggedIn = computed(() => Boolean(me.value));
+const isLoggedIn = computed(() => me.value !== null);
 
 export function useAuth() {
     async function refreshMe() {
@@ -21,11 +22,17 @@ export function useAuth() {
         me.value = null;
     }
 
+    async function logoutAll() {
+        await logoutAllApi();
+        me.value = null;
+    }
+
     return {
         me,
         isLoggedIn,
         isLoading,
         refreshMe,
         logout,
+        logoutAll,
     };
 }

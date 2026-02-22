@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from "vue";
+import { onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import HeaderBar from "@/components/HeaderBar.vue";
 import FooterBar from "@/components/FooterBar.vue";
@@ -29,9 +29,9 @@ function handleGuildClick(guild) {
     <div style="padding: 24px; width: min(1100px, calc(100% - 28px)); margin: 0 auto;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <h1 style="margin: 0;">Dashboard</h1>
-        <router-link 
-          to="/dashboard/premium" 
-          style="background: #5865f2; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: flex; align-items: center; gap: 8px;"
+        <router-link
+            to="/dashboard/premium"
+            style="background: #5865f2; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: flex; align-items: center; gap: 8px;"
         >
           <span>💎 プレミアム管理</span>
         </router-link>
@@ -70,7 +70,7 @@ function handleGuildClick(guild) {
               <div class="rowId">ID: {{ g.id }}</div>
             </div>
           </div>
-          
+
           <div class="rowRight">
             <button class="settings-btn">
               ⚙️ 設定を開く
@@ -117,7 +117,8 @@ function handleGuildClick(guild) {
   min-width: 0;
 }
 
-.avatar, .avatarImg {
+.avatar,
+.avatarImg {
   width: 48px;
   height: 48px;
   border-radius: 14px;
@@ -168,6 +169,7 @@ function handleGuildClick(guild) {
   font-weight: bold;
   color: var(--text);
   transition: all 0.2s;
+  cursor: pointer;
 }
 
 .row:hover .settings-btn {
@@ -211,9 +213,11 @@ function handleGuildClick(guild) {
     align-items: flex-start;
     gap: 16px;
   }
+
   .rowRight {
     width: 100%;
   }
+
   .settings-btn {
     width: 100%;
   }

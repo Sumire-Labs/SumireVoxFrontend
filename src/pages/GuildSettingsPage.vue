@@ -151,13 +151,9 @@ async function handleRemoveWord(word) {
           <div class="setting-item">
             <div class="setting-info">
               <label>自動接続</label>
-              <p>ボイスチャンネルへの自動接続を有効にします</p>
+              <p>この設定は<code class="code">/config</code>コマンドからのみ設定できます</p>
               <p v-if="!isBoosted" class="premium-hint">💎 プレミアム（1ブースト以上）限定機能です</p>
             </div>
-            <label class="toggle" :class="{ disabled: !isBoosted }">
-              <input type="checkbox" v-model="settings.auto_join" :disabled="!isBoosted" />
-              <span class="toggle-slider"></span>
-            </label>
           </div>
 
           <div class="setting-item">
@@ -323,6 +319,15 @@ async function handleRemoveWord(word) {
   cursor: pointer;
 
   transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.code {
+  font-family: "JetBrains Mono", monospace;
+  background: rgba(75, 92, 159, 0.05);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #444d56;
 }
 
 .toast.success {

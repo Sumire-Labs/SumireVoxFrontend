@@ -31,6 +31,15 @@ const isBoosted = computed(() => {
 const dictLimit = computed(() => isBoosted.value ? 100 : 10);
 const charLimit = computed(() => isBoosted.value ? 200 : 50);
 
+// スライダーの進捗率を計算
+const sliderProgress = computed(() => {
+  if (!settings.value) return 0;
+  const min = 10;
+  const max = charLimit.value;
+  const value = settings.value.max_chars;
+  return ((value - min) / (max - min)) * 100;
+});
+
 const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=1469627429008969741&permissions=3145728&scope=bot%20applications.commands&guild_id=${props.id}&disable_guild_select=true`;
 
 const newWord = ref("");
@@ -257,7 +266,8 @@ async function handleRemoveWord(word) {
             </label>
           </div>
 
-          <div class="setting-item">
+          <!-- 文字数制限（モダンデザイン） -->
+          <div class="setting-item char-limit-section">
             <div class="setting-info">
               <label>文字数制限</label>
               <p>読み上げる文字数の上限を設定します</p>
@@ -265,9 +275,26 @@ async function handleRemoveWord(word) {
                 {{ isBoosted ? '💎 プレミアム適用中: 最大200文字' : '📝 無料版制限: 50文字まで' }}
               </p>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="number" v-model.number="settings.max_chars" :min="10" :max="charLimit" class="number-input" />
-              <span style="font-size: 14px;">文字</span>
+            <div class="char-limit-control">
+              <div class="char-limit-display">
+                <span class="char-limit-value">{{ settings.max_chars }}</span>
+                <span class="char-limit-unit">文字</span>
+              </div>
+              <div class="slider-container">
+                <input
+                    type="range"
+                    v-model.number="settings.max_chars"
+                    :min="10"
+                    :max="charLimit"
+                    step="1"
+                    class="modern-slider"
+                    :style="{ '--progress': sliderProgress + '%' }"
+                />
+                <div class="slider-labels">
+                  <span>10</span>
+                  <span>{{ charLimit }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -508,6 +535,122 @@ async function handleRemoveWord(word) {
 
 .toggle.disabled .toggle-slider {
   cursor: not-allowed;
+}
+
+/* ==================== Modern Character Limit Slider ==================== */
+.char-limit-section {
+  flex-direction: column;
+  align-items: stretch !important;
+  gap: 16px;
+}
+
+.char-limit-control {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.char-limit-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(139, 92, 246, 0.08));
+  border: 1px solid rgba(79, 70, 229, 0.15);
+  border-radius: 12px;
+  padding: 12px 20px;
+}
+
+.char-limit-value {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.char-limit-unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(79, 70, 229, 0.7);
+}
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modern-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(
+      to right,
+      #4f46e5 0%,
+      #8b5cf6 var(--progress),
+      rgba(120, 120, 128, 0.16) var(--progress),
+      rgba(120, 120, 128, 0.16) 100%
+  );
+  outline: none;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.modern-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #4f46e5;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modern-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modern-slider::-webkit-slider-thumb:active {
+  transform: scale(0.95);
+}
+
+.modern-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #4f46e5;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modern-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modern-slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2), 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(27, 35, 64, 0.5);
+  font-weight: 500;
+  padding: 0 2px;
 }
 
 /* ==================== Existing Styles ==================== */

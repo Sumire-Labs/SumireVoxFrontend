@@ -1,27 +1,40 @@
-import { ref, onMounted } from "vue";
+import { ref, watch, computed } from "vue";
 import { getGuildSettings, updateGuildSettings, getGuildDict, addDictEntry, deleteDictEntry } from "./guildApi.js";
 
-export function useGuildSettings(guildId) {
+export function useGuildSettings(guildIdRef) {
     const settings = ref(null);
     const dictEntries = ref([]);
-    const billingStatus = ref(null); // 追加
+    const billingStatus = ref(null);
     const isLoading = ref(false);
     const isSaving = ref(false);
     const error = ref(null);
 
+    // guildId を computed で取得（ref または 生の値 両方に対応）
+    const guildId = computed(() => {
+        if (typeof guildIdRef === 'function') return guildIdRef();
+        if (guildIdRef?.value !== undefined) return guildIdRef.value;
+        return guildIdRef;
+    });
+
     async function load() {
+        const id = guildId.value;
+        if (!id) {
+            console.warn("guildId is undefined, skipping load");
+            return;
+        }
+
         isLoading.value = true;
         error.value = null;
         try {
             const { getBillingStatus } = await import("@/features/billing/billingApi.js");
             const [s, d, b] = await Promise.all([
-                getGuildSettings(guildId),
-                getGuildDict(guildId),
-                getBillingStatus() // 追加
+                getGuildSettings(id),
+                getGuildDict(id),
+                getBillingStatus()
             ]);
             settings.value = s;
             dictEntries.value = d;
-            billingStatus.value = b; // 追加
+            billingStatus.value = b;
         } catch (e) {
             console.error(e);
             error.value = e.message;
@@ -31,41 +44,53 @@ export function useGuildSettings(guildId) {
     }
 
     async function saveSettings() {
-        if (!settings.value) return;
+        const id = guildId.value;
+        if (!settings.value || !id) return;
         isSaving.value = true;
         try {
-            await updateGuildSettings(guildId, settings.value);
+            await updateGuildSettings(id, settings.value);
         } finally {
             isSaving.value = false;
         }
     }
 
     async function addWord(word, reading) {
-        const { ok, data } = await addDictEntry(guildId, { word, reading });
+        const id = guildId.value;
+        if (!id) return false;
+        const { ok } = await addDictEntry(id, { word, reading });
         if (ok) {
-            await loadDict(); // リロード
+            await loadDict();
         }
         return ok;
     }
 
     async function removeWord(word) {
-        const ok = await deleteDictEntry(guildId, word);
+        const id = guildId.value;
+        if (!id) return false;
+        const ok = await deleteDictEntry(id, word);
         if (ok) {
-            await loadDict(); // リロード
+            await loadDict();
         }
         return ok;
     }
 
     async function loadDict() {
-        dictEntries.value = await getGuildDict(guildId);
+        const id = guildId.value;
+        if (!id) return;
+        dictEntries.value = await getGuildDict(id);
     }
 
-    onMounted(load);
+    // guildId が変更されたら自動でロード
+    watch(guildId, (newId) => {
+        if (newId) {
+            load();
+        }
+    }, { immediate: true });
 
     return {
         settings,
         dictEntries,
-        billingStatus, // 追加
+        billingStatus,
         isLoading,
         isSaving,
         error,

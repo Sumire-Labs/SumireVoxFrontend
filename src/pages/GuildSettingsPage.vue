@@ -1,9 +1,12 @@
 <!-- GuildSettingsPage.vue -->
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onUnmounted } from "vue";
 import HeaderBar from "@/components/HeaderBar.vue";
 import FooterBar from "@/components/FooterBar.vue";
 import { useGuildSettings } from "@/features/guilds/useGuildSettings.js";
+import { useToast } from "@/composables/useToast.js";
+import { getDiscordInviteUrl } from "@/lib/config.js";
+import { validateDictEntry } from "@/lib/validation.js";
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -20,7 +23,9 @@ const {
   addWord,
   removeWord,
   refresh
-} = useGuildSettings(props.id);
+} = useGuildSettings(() => props.id);
+
+const { toast, showSuccess, showError, hideToast } = useToast();
 
 const isBoosted = computed(() => {
   if (!billingStatus.value) return false;
@@ -40,38 +45,11 @@ const sliderProgress = computed(() => {
   return ((value - min) / (max - min)) * 100;
 });
 
-const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=1469627429008969741&permissions=3145728&scope=bot%20applications.commands&guild_id=${props.id}&disable_guild_select=true`;
+const inviteUrl = computed(() => getDiscordInviteUrl(props.id, true));
 
 const newWord = ref("");
 const newReading = ref("");
-
-// トースト通知の状態
-const toast = ref({
-  show: false,
-  message: "",
-  type: "success"
-});
-
-let toastTimer = null;
-
-function showToast(message, type = "success") {
-  if (toastTimer) {
-    clearTimeout(toastTimer);
-  }
-
-  toast.value = { show: true, message, type };
-
-  toastTimer = setTimeout(() => {
-    toast.value.show = false;
-  }, 3000);
-}
-
-function hideToast() {
-  toast.value.show = false;
-  if (toastTimer) {
-    clearTimeout(toastTimer);
-  }
-}
+const wordError = ref("");
 
 // 文字数制限のバリデーション
 watch(
@@ -81,38 +59,61 @@ watch(
 
       if (!isBoosted.value && newValue > 50) {
         settings.value.max_chars = 50;
-        showToast("プレミアム（1ブースト以上）が有効ではないため、51文字以上は設定できません", "error");
+        showError("プレミアム（1ブースト以上）が有効ではないため、51文字以上は設定できません");
       }
     }
 );
 
 async function saveSettings() {
   try {
-    await saveSettingsApi();
-    showToast("設定を保存しました", "success");
+    const result = await saveSettingsApi();
+    if (result.ok) {
+      showSuccess("設定を保存しました");
+    } else {
+      showError("保存に失敗しました");
+    }
   } catch (e) {
-    showToast("保存に失敗しました", "error");
+    showError("保存に失敗しました");
   }
 }
 
 async function handleAddWord() {
-  if (!newWord.value || !newReading.value) return;
-  const ok = await addWord(newWord.value, newReading.value);
+  wordError.value = "";
+
+  if (!newWord.value || !newReading.value) {
+    wordError.value = "単語と読みを入力してください";
+    return;
+  }
+
+  // バリデーション
+  const validation = validateDictEntry(newWord.value, newReading.value);
+  if (!validation.valid) {
+    wordError.value = validation.errors.join("、");
+    return;
+  }
+
+  // 辞書上限チェック
+  if (dictEntries.value.length >= dictLimit.value) {
+    showError(`辞書の登録数が上限（${dictLimit.value}件）に達しています`);
+    return;
+  }
+
+  const { ok, errors } = await addWord(newWord.value, newReading.value);
   if (ok) {
     newWord.value = "";
     newReading.value = "";
-    showToast("辞書に追加しました", "success");
+    showSuccess("辞書に追加しました");
   } else {
-    showToast("追加に失敗しました", "error");
+    showError(errors.length > 0 ? errors.join("、") : "追加に失敗しました");
   }
 }
 
 async function handleRemoveWord(word) {
   const ok = await removeWord(word);
   if (ok) {
-    showToast("辞書から削除しました", "success");
+    showSuccess("辞書から削除しました");
   } else {
-    showToast("削除に失敗しました", "error");
+    showError("削除に失敗しました");
   }
 }
 </script>
@@ -299,35 +300,55 @@ async function handleRemoveWord(word) {
           </div>
         </section>
 
+        <!-- 辞書設定セクション -->
         <section class="card">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
-            <h2 style="margin: 0;">辞書編集</h2>
-            <span class="premium-hint">{{ dictEntries.length }} / {{ dictLimit }} 個登録済み</span>
+          <div class="card-header">
+            <h2>辞書設定</h2>
+            <span class="dict-count">{{ dictEntries.length }} / {{ dictLimit }}</span>
           </div>
 
-          <div v-if="dictEntries.length >= dictLimit" class="limit-warning">
-            ⚠️ 辞書登録数が上限（{{ dictLimit }}個）に達しています。
-            <router-link v-if="!isBoosted" to="/dashboard/premium" style="color: #8547ff;">プレミアムプランで拡張</router-link>
-          </div>
-
-          <div class="add-word-form">
-            <input v-model="newWord" placeholder="単語" class="text-input" :disabled="dictEntries.length >= dictLimit" />
-            <input v-model="newReading" placeholder="読み" class="text-input" :disabled="dictEntries.length >= dictLimit" />
-            <button @click="handleAddWord" class="add-button" :disabled="dictEntries.length >= dictLimit">追加</button>
-          </div>
-
-          <div class="dict-list">
-            <div v-for="entry in dictEntries" :key="entry.word" class="dict-item">
-              <div class="dict-word-pair">
-                <span class="word">{{ entry.word }}</span>
-                <span class="arrow">→</span>
-                <span class="reading">{{ entry.reading }}</span>
-              </div>
-              <button @click="handleRemoveWord(entry.word)" class="delete-button">削除</button>
+          <div class="dict-form">
+            <div class="dict-inputs">
+              <input
+                  v-model="newWord"
+                  type="text"
+                  placeholder="単語"
+                  class="dict-input"
+                  maxlength="50"
+              />
+              <input
+                  v-model="newReading"
+                  type="text"
+                  placeholder="読み"
+                  class="dict-input"
+                  maxlength="100"
+              />
+              <button
+                  @click="handleAddWord"
+                  class="dict-add-btn"
+                  :disabled="dictEntries.length >= dictLimit"
+              >
+                追加
+              </button>
             </div>
-            <p v-if="dictEntries.length === 0" style="color: rgba(27,35,64,0.5); text-align: center; margin-top: 20px;">
-              登録されている単語はありません
-            </p>
+            <p v-if="wordError" class="dict-error">{{ wordError }}</p>
+          </div>
+
+          <div v-if="dictEntries.length === 0" class="dict-empty">
+            辞書に単語が登録されていません
+          </div>
+
+          <div v-else class="dict-list">
+            <div v-for="entry in dictEntries" :key="entry.word" class="dict-item">
+              <div class="dict-item-content">
+                <span class="dict-word">{{ entry.word }}</span>
+                <span class="dict-arrow">→</span>
+                <span class="dict-reading">{{ entry.reading }}</span>
+              </div>
+              <button @click="handleRemoveWord(entry.word)" class="dict-remove-btn">
+                削除
+              </button>
+            </div>
           </div>
         </section>
       </div>
@@ -337,150 +358,77 @@ async function handleRemoveWord(word) {
 </template>
 
 <style scoped>
-/* ==================== Toast Notification ==================== */
-.toast {
-  position: fixed;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-
+.settings-grid {
   display: flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 14px 20px;
-  border-radius: 12px;
-
-  font-weight: 600;
-  font-size: 14px;
-
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  cursor: pointer;
-
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.code {
-  font-family: "JetBrains Mono", monospace;
-  background: rgba(75, 92, 159, 0.05);
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #444d56;
+.card {
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  border-radius: 16px;
+  padding: 24px;
 }
 
-.toast.success {
-  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #065f46;
-}
-
-.toast.error {
-  background: linear-gradient(135deg, #fee2e2, #fecaca);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #991b1b;
-}
-
-.toast-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.toast.success .toast-icon {
-  background: #10b981;
-  color: white;
-}
-
-.toast.error .toast-icon {
-  background: #ef4444;
-  color: white;
-}
-
-.toast-message {
-  line-height: 1.4;
-}
-
-/* Toast Animation */
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 0.3s ease;
-}
-
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-20px);
-}
-
-.toast-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-10px);
-}
-
-/* ==================== Card Header with Save Button ==================== */
 .card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .card-header h2 {
   margin: 0;
+  font-size: 20px;
 }
 
-.save-button {
-  display: inline-flex;
+.setting-item {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--stroke);
+}
 
-  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  color: #0369a1;
+.setting-item:last-child {
+  border-bottom: none;
+}
 
-  padding: 10px 18px;
-  border-radius: 10px;
+.setting-info {
+  flex: 1;
+}
+
+.setting-info label {
   font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
-  transition: all 0.2s ease;
+  font-size: 15px;
+  color: var(--text);
 }
 
-.save-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #bae6fd, #7dd3fc);
-  border-color: rgba(56, 189, 248, 0.5);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+.setting-info p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
 }
 
-.save-button:active:not(:disabled) {
-  transform: translateY(0);
+.code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
 }
 
-.save-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.premium-hint {
+  color: #7c3aed !important;
+  font-size: 12px !important;
 }
 
-.save-icon {
-  font-size: 16px;
-}
-
-/* ==================== Toggle Switch (iOS Style) ==================== */
+/* トグルスイッチ */
 .toggle {
   position: relative;
   display: inline-block;
-  width: 51px;
-  height: 31px;
+  width: 52px;
+  height: 28px;
   flex-shrink: 0;
 }
 
@@ -497,252 +445,129 @@ async function handleRemoveWord(word) {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(120, 120, 128, 0.16);
-  border-radius: 31px;
-  transition: background-color 0.25s ease;
+  background-color: #e2e8f0;
+  transition: 0.3s;
+  border-radius: 28px;
 }
 
-.toggle-slider::before {
+.toggle-slider:before {
   position: absolute;
   content: "";
-  height: 27px;
-  width: 27px;
-  left: 2px;
-  bottom: 2px;
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
   background-color: white;
+  transition: 0.3s;
   border-radius: 50%;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.06);
-  transition: transform 0.25s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .toggle input:checked + .toggle-slider {
-  background-color: var(--primary);
+  background-color: #5865f2;
 }
 
-.toggle input:checked + .toggle-slider::before {
-  transform: translateX(20px);
+.toggle input:checked + .toggle-slider:before {
+  transform: translateX(24px);
 }
 
-.toggle input:focus + .toggle-slider {
-  box-shadow: 0 0 0 3px rgba(123, 144, 255, 0.3);
+/* 保存ボタン */
+.save-button {
+  background: #5865f2;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
 }
 
-/* Disabled state */
-.toggle.disabled {
-  opacity: 0.5;
-  pointer-events: none;
+.save-button:hover:not(:disabled) {
+  background: #4752c4;
 }
 
-.toggle.disabled .toggle-slider {
+.save-button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* ==================== Modern Character Limit Slider ==================== */
+/* 文字数制限 */
 .char-limit-section {
   flex-direction: column;
-  align-items: stretch !important;
+  align-items: stretch;
   gap: 16px;
 }
 
 .char-limit-control {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
+  align-items: center;
+  gap: 24px;
+  margin-top: 12px;
 }
 
 .char-limit-display {
   display: flex;
   align-items: baseline;
-  justify-content: center;
   gap: 4px;
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(139, 92, 246, 0.08));
-  border: 1px solid rgba(79, 70, 229, 0.15);
-  border-radius: 12px;
-  padding: 12px 20px;
 }
 
 .char-limit-value {
   font-size: 32px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #4f46e5, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
+  font-weight: 900;
+  color: #5865f2;
 }
 
 .char-limit-unit {
   font-size: 14px;
-  font-weight: 600;
-  color: rgba(79, 70, 229, 0.7);
+  color: var(--muted);
 }
 
 .slider-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex: 1;
 }
 
 .modern-slider {
-  -webkit-appearance: none;
-  appearance: none;
   width: 100%;
   height: 8px;
   border-radius: 4px;
   background: linear-gradient(
       to right,
-      #4f46e5 0%,
-      #8b5cf6 var(--progress),
-      rgba(120, 120, 128, 0.16) var(--progress),
-      rgba(120, 120, 128, 0.16) 100%
+      #5865f2 0%,
+      #5865f2 var(--progress),
+      #e2e8f0 var(--progress),
+      #e2e8f0 100%
   );
   outline: none;
+  -webkit-appearance: none;
   cursor: pointer;
-  transition: background 0.1s ease;
 }
 
 .modern-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: white;
-  border: 2px solid #4f46e5;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1);
+  border: 2px solid #5865f2;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modern-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.modern-slider::-webkit-slider-thumb:active {
-  transform: scale(0.95);
-}
-
-.modern-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid #4f46e5;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modern-slider::-moz-range-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.modern-slider:focus::-webkit-slider-thumb {
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2), 0 2px 8px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .slider-labels {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: rgba(27, 35, 64, 0.5);
-  font-weight: 500;
-  padding: 0 2px;
-}
-
-/* ==================== Existing Styles ==================== */
-.premium-hint {
-  font-size: 12px;
-  color: #8547ff;
-  font-weight: bold;
+  color: var(--muted);
   margin-top: 4px;
 }
 
-.limit-warning {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #b45309;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-
-.settings-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-@media (max-width: 900px) {
-  .settings-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .save-button {
-    justify-content: center;
-  }
-}
-
-.card {
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(66, 84, 140, 0.15);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 10px 24px rgba(20, 25, 50, 0.06);
-}
-
-.setting-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(66, 84, 140, 0.1);
-}
-
-.setting-item:last-child {
-  border-bottom: none;
-}
-
-.setting-info {
-  flex: 1;
-  min-width: 0;
-  padding-right: 16px;
-}
-
-.setting-info label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.setting-info p {
-  font-size: 13px;
-  color: rgba(27, 35, 64, 0.72);
-  margin: 0;
-}
-
-.invite-card {
-  text-align: center;
-  padding: 48px 24px;
-}
-
+/* 招待カード */
 .invite-card h2 {
-  margin-bottom: 16px;
-  color: #1b2340;
-}
-
-.invite-card p {
-  margin-bottom: 8px;
-  color: rgba(27, 35, 64, 0.72);
+  margin-top: 0;
 }
 
 .invite-button {
@@ -754,97 +579,171 @@ async function handleRemoveWord(word) {
   border-radius: 8px;
   font-weight: bold;
   margin-right: 12px;
-  transition: background 0.2s;
-}
-
-.invite-button:hover {
-  background: #4752c4;
 }
 
 .refresh-button {
   background: white;
-  color: #1b2340;
-  border: 1px solid rgba(66, 84, 140, 0.3);
+  border: 1px solid var(--stroke);
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
-.refresh-button:hover {
-  background: #f3f4f6;
+/* 辞書 */
+.dict-count {
+  font-size: 14px;
+  color: var(--muted);
 }
 
-.number-input {
-  width: 60px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(66, 84, 140, 0.3);
+.dict-form {
+  margin-bottom: 16px;
 }
 
-.add-word-form {
+.dict-inputs {
   display: flex;
   gap: 8px;
-  margin-bottom: 20px;
 }
 
-.text-input {
+.dict-input {
   flex: 1;
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(66, 84, 140, 0.3);
+  padding: 10px 14px;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  font-size: 14px;
 }
 
-.add-button {
-  background: #10b981;
+.dict-add-btn {
+  background: #5865f2;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 20px;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
 }
 
+.dict-add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dict-error {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.dict-empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--muted);
+}
+
 .dict-list {
-  max-height: 400px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .dict-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  border-bottom: 1px solid rgba(66, 84, 140, 0.1);
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
 }
 
-.dict-word-pair {
+.dict-item-content {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
-.word {
-  font-weight: bold;
+.dict-word {
+  font-weight: 600;
 }
 
-.arrow {
-  color: rgba(27, 35, 64, 0.4);
+.dict-arrow {
+  color: var(--muted);
 }
 
-.delete-button {
-  background: transparent;
-  color: #ef4444;
+.dict-reading {
+  color: var(--muted);
+}
+
+.dict-remove-btn {
+  background: none;
   border: 1px solid #ef4444;
-  padding: 4px 8px;
-  border-radius: 4px;
+  color: #ef4444;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
-.delete-button:hover {
+.dict-remove-btn:hover {
   background: #ef4444;
   color: white;
+}
+
+/* トースト */
+.toast {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast.success {
+  background: #10b981;
+  color: white;
+}
+
+.toast.error {
+  background: #ef4444;
+  color: white;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+@media (max-width: 600px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .char-limit-control {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dict-inputs {
+    flex-direction: column;
+  }
+
+  .toast {
+    left: 24px;
+    right: 24px;
+  }
 }
 </style>

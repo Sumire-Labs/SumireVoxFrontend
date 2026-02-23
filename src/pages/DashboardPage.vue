@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, computed } from "vue";
+import { onMounted, computed, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import HeaderBar from "@/components/HeaderBar.vue";
 import FooterBar from "@/components/FooterBar.vue";
@@ -11,7 +11,23 @@ const { guilds, hasGuilds, isLoading, refreshGuilds } = useGuilds();
 const invitedGuilds = computed(() => guilds.value.filter(g => g.bot_in_guild));
 const hasInvitedGuilds = computed(() => invitedGuilds.value.length > 0);
 
-onMounted(refreshGuilds);
+// 定期的に更新するためのインターバル
+let refreshInterval = null;
+
+onMounted(() => {
+  refreshGuilds();
+
+  // 5分ごとに更新（オプション）
+  refreshInterval = setInterval(() => {
+    refreshGuilds();
+  }, 5 * 60 * 1000);
+});
+
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+  }
+});
 
 function openGuild(guildId) {
   router.push(`/dashboard/guilds/${guildId}`);

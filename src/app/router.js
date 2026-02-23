@@ -7,6 +7,7 @@ import PremiumDetailsPage from "@/pages/PremiumDetailsPage.vue";
 import FeaturesPage from "@/pages/FeaturesPage.vue";
 import GuildSettingsPage from "@/pages/GuildSettingsPage.vue";
 import NotFoundPage from "@/pages/NotFoundPage.vue";
+import TermsPage from "@/pages/TermsPage.vue";
 
 export const router = createRouter({
     history: createWebHistory(),
@@ -17,6 +18,7 @@ export const router = createRouter({
         { path: "/dashboard/premium", component: PremiumPage },
         { path: "/premium", component: PremiumDetailsPage },
         { path: "/dashboard/guilds/:id", component: GuildSettingsPage, props: true },
+        { path: "/terms", component: TermsPage },
         { path: "/:pathMatch(.*)*", component: NotFoundPage },
     ],
     scrollBehavior(to, from, savedPosition) {

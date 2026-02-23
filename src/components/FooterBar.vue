@@ -32,9 +32,9 @@ const LINKS = [
         </div>
         <div class="footerCol">
           <div class="footerColTitle">規約とポリシー</div>
-          <a href="/terms">利用規約</a>
-          <a href="#">個人情報保護方針</a>
-          <a href="#">払い戻しポリシー</a>
+          <router-link to="/terms">利用規約</router-link>
+          <router-link to="/privacy">個人情報保護方針</router-link>
+          <router-link to="/refund">払い戻しポリシー</router-link>
         </div>
       </div>
     </div>

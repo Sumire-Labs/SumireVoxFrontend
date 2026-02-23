@@ -1,13 +1,14 @@
 <script setup>
 import HeaderBar from "@/components/HeaderBar.vue";
 import FooterBar from "@/components/FooterBar.vue";
+import { getDiscordInviteUrl } from "@/lib/config.js";
 
 const BRAND = {
   name: "Sumire Vox Bot",
   tagline: "VOICEVOXで、Discordの会話をもっと楽しく。",
 };
 
-const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL;
+const discordInviteUrl = getDiscordInviteUrl();
 
 function goInvite() {
   if (!discordInviteUrl) {

@@ -228,6 +228,12 @@ function goInvite() {
                 通常は購入完了後まもなく反映されます。反映に時間がかかる場合は、しばらく待ってから画面の再読み込みをお試しください。
               </p>
             </details>
+            <details>
+              <summary>サーモンはおいしいですか？</summary>
+              <p>
+                いいえ。サーモンはきっとマシンガンでしょう！
+              </p>
+            </details>
           </div>
         </div>
       </section>

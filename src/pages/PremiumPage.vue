@@ -80,7 +80,7 @@ async function handleBoost(guild) {
   
   // ボット在席チェック
   if (!guild.bot_in_guild) {
-    const mainBotId = billingConfig.value.client_id_0 || import.meta.env.VITE_DISCORD_CLIENT_ID || '1469627429008969741';
+    const mainBotId = billingConfig.value.client_id_0 || import.meta.env.VITE_DISCORD_CLIENT_ID;
     const inviteUrl = getInviteUrl(mainBotId);
     const confirmed = confirm(
       "ボットがサーバーに参加していません。\n先にボットを招待してからブーストを適用することをお勧めします。\n\nボットを招待しますか？"

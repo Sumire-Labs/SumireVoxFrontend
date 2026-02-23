@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "@/features/auth/useAuth.js";
+import { getApiUrl } from "@/lib/http.js";
 import logo from "@/assets/logo.png";
 
 const router = useRouter();
@@ -14,7 +15,7 @@ const BRAND = {
 onMounted(refreshMe);
 
 function loginWithDiscord() {
-  window.location.href = "/auth/discord/start";
+  window.location.href = getApiUrl("/auth/discord/start");
 }
 
 function goDashboard() {
@@ -62,6 +63,7 @@ async function onLogout() {
 </template>
 
 <style scoped>
+/* スタイルは変更なし */
 .header {
   position: sticky;
   top: 0;

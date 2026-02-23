@@ -1,6 +1,7 @@
 // src/lib/http.js
 
 import { router } from "@/app/router.js";
+import { config } from "@/lib/config.js";
 
 /**
  * ネットワークエラー
@@ -57,6 +58,30 @@ function handleAuthError() {
 }
 
 /**
+ * APIのベースURLを取得
+ * @param {string} path - APIパス
+ * @returns {string} - 完全なURL
+ */
+export function getApiUrl(path) {
+    const baseUrl = config.apiBaseUrl;
+
+    // ベースURLが設定されている場合はそちらを使用
+    if (baseUrl) {
+        // プロトコルが含まれているかチェック
+        const hasProtocol = /^https?:\/\//i.test(baseUrl);
+        const normalizedBase = hasProtocol
+            ? baseUrl.replace(/\/+$/, '')
+            : `https://${baseUrl.replace(/\/+$/, '')}`;
+        const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+        return `${normalizedBase}${normalizedPath}`;
+    }
+
+    // 設定されていない場合は相対パスをそのまま使用
+    return path;
+}
+
+
+/**
  * APIリクエストを送信する
  * @param {string} path - APIパス
  * @param {RequestInit} options - fetchオプション
@@ -64,9 +89,10 @@ function handleAuthError() {
  */
 export async function apiFetch(path, options = {}) {
     let res;
+    const url = getApiUrl(path);
 
     try {
-        res = await fetch(path, {
+        res = await fetch(url, {
             credentials: "include",
             ...options,
             headers: {

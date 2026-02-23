@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      sourcemap: false,
       // チャンクサイズの警告閾値
       chunkSizeWarningLimit: 500,
       rollupOptions: {

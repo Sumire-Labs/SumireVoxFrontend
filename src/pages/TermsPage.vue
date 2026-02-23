@@ -131,7 +131,8 @@ const SECTIONS = [
     title: "第18条（お問い合わせ）",
     content: `本規約または本サービスに関するお問い合わせは、以下の方法でご連絡ください。`,
     contactInfo: {
-      github: "https://github.com/Sumire-Labs"
+      email: "sumirevox@gmail.com",
+      discord: "https://discord.gg/8RzjWAvUUt"
     }
   }
 ];
@@ -195,15 +196,26 @@ const SECTIONS = [
           </ul>
 
           <div v-if="section.contactInfo" class="contactBox">
-            <p class="contactLabel">GitHub:</p>
-            <a
-                :href="section.contactInfo.github"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="contactLink"
-            >
-              {{ section.contactInfo.github }}
-            </a>
+            <div class="contactItem">
+              <p class="contactLabel">Email:</p>
+              <a
+                  :href="'mailto:' + section.contactInfo.email"
+                  class="contactLink"
+              >
+                {{ section.contactInfo.email }}
+              </a>
+            </div>
+            <div class="contactItem">
+              <p class="contactLabel">Discord:</p>
+              <a
+                  :href="section.contactInfo.discord"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="contactLink"
+              >
+                サポートサーバーに参加
+              </a>
+            </div>
           </div>
         </article>
 

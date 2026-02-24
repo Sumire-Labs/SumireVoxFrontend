@@ -241,7 +241,7 @@ function getInviteUrl(botId) {
       <!-- サーバーリスト -->
       <section class="card listCard">
         <div class="listHeader">
-          <h2 class="listTitle">管理可能なサーバー</h2>
+          <h2 class="listTitle">ブースト可能なサーバー</h2>
         </div>
 
         <div v-if="isLoading" class="listEmpty muted">

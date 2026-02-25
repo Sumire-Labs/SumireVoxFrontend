@@ -3,12 +3,12 @@ import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import HeaderBar from "@/components/HeaderBar.vue";
 import FooterBar from "@/components/FooterBar.vue";
-import { 
-  getBillingStatus, 
-  createCheckoutSession, 
-  unboostGuild, 
-  boostGuild, 
-  getBillingConfig 
+import {
+  getBillingStatus,
+  createCheckoutSession,
+  unboostGuild,
+  boostGuild,
+  getBillingConfig
 } from "@/features/billing/billingApi.js";
 
 const route = useRoute();
@@ -27,6 +27,9 @@ const billingConfig = ref({
 const isLoading = ref(true);
 const isProcessing = ref(false);
 
+// Stripeカスタマーポータル URL（環境変数から取得）
+const customerPortalUrl = import.meta.env.VITE_STRIPE_CUSTOMER_PORTAL_URL;
+
 async function fetchData() {
   try {
     const [status, config] = await Promise.all([
@@ -44,11 +47,11 @@ async function fetchData() {
 
 onMounted(async () => {
   await fetchData();
-  
+
   // 決済完了後の自動更新チェック
   if (route.query.session_id) {
     // 実際にはAPIでセッション確認する方が良いが、ここでは再取得で代用
-    setTimeout(fetchData, 2000); 
+    setTimeout(fetchData, 2000);
   }
 });
 
@@ -72,25 +75,34 @@ async function handleUpgrade() {
   }
 }
 
+// サブスクリプション管理（Stripeカスタマーポータル）へリダイレクト
+function handleManageSubscription() {
+  if (customerPortalUrl) {
+    window.location.href = customerPortalUrl;
+  } else {
+    alert("カスタマーポータルURLが設定されていません。");
+  }
+}
+
 async function handleBoost(guild) {
   if (availableSlots.value <= 0) {
     alert("空きスロットがありません。プランをアップグレードしてください。");
     return;
   }
-  
+
   // ボット在席チェック
   if (!guild.bot_in_guild) {
     const mainBotId = billingConfig.value.client_id_0 || import.meta.env.VITE_DISCORD_CLIENT_ID;
     const inviteUrl = getInviteUrl(mainBotId);
     const confirmed = confirm(
-      "ボットがサーバーに参加していません。\n先にボットを招待してからブーストを適用することをお勧めします。\n\nボットを招待しますか？"
+        "ボットがサーバーに参加していません。\n先にボットを招待してからブーストを適用することをお勧めします。\n\nボットを招待しますか？"
     );
     if (confirmed) {
       window.open(inviteUrl, '_blank');
     }
     return;
   }
-  
+
   isProcessing.value = true;
   try {
     await boostGuild(guild.id);
@@ -104,7 +116,7 @@ async function handleBoost(guild) {
 
 async function handleUnboost(guildId) {
   if (!confirm("このサーバーのブーストを解除しますか？\n枠が返却され、他のサーバーで使用できるようになります。")) return;
-  
+
   isProcessing.value = true;
   try {
     await unboostGuild(guildId);
@@ -185,10 +197,15 @@ function getInviteUrl(botId) {
             </p>
           </div>
 
-          <button type="button" class="btn primary buyBtn" @click="handleUpgrade" :disabled="isProcessing">
-            <span v-if="isProcessing">処理中...</span>
-            <span v-else>💳 スロットを追加購入する</span>
-          </button>
+          <div class="btnGroup">
+            <button type="button" class="btn primary buyBtn" @click="handleUpgrade" :disabled="isProcessing">
+              <span v-if="isProcessing">処理中...</span>
+              <span v-else>💳 スロットを追加購入する</span>
+            </button>
+            <button type="button" class="btn secondary manageBtn" @click="handleManageSubscription">
+              ⚙️ サブスクリプションの管理
+            </button>
+          </div>
         </div>
       </section>
 
@@ -282,21 +299,21 @@ function getInviteUrl(botId) {
             <div class="rowRight">
               <!-- ブースト操作 -->
               <div class="actionGroup">
-                <button 
-                  v-if="guild.boost_count < billingConfig.max_boosts_per_guild"
-                  type="button" 
-                  class="boostBtn" 
-                  @click="handleBoost(guild)"
-                  :disabled="isProcessing || availableSlots <= 0"
+                <button
+                    v-if="guild.boost_count < billingConfig.max_boosts_per_guild"
+                    type="button"
+                    class="boostBtn"
+                    @click="handleBoost(guild)"
+                    :disabled="isProcessing || availableSlots <= 0"
                 >
                   {{ guild.boost_count > 0 ? '追加ブースト' : 'ブーストする' }}
                 </button>
-                <button 
-                  v-if="getGuildBoostStatus(guild.id)"
-                  type="button" 
-                  class="unboostBtn" 
-                  @click="handleUnboost(guild.id)"
-                  :disabled="isProcessing"
+                <button
+                    v-if="getGuildBoostStatus(guild.id)"
+                    type="button"
+                    class="unboostBtn"
+                    @click="handleUnboost(guild.id)"
+                    :disabled="isProcessing"
                 >
                   解除
                 </button>
@@ -311,11 +328,11 @@ function getInviteUrl(botId) {
                   1台目: {{ guild.bot_in_guild ? '導入済み' : '未導入' }}
                 </div>
                 <template v-for="(bot, index) in billingConfig.bot_instances" :key="bot.id">
-                  <a 
-                    v-if="index > 0 && guild.boost_count >= index + 1" 
-                    :href="getInviteUrl(bot.client_id)" 
-                    target="_blank" 
-                    class="inviteLink"
+                  <a
+                      v-if="index > 0 && guild.boost_count >= index + 1"
+                      :href="getInviteUrl(bot.client_id)"
+                      target="_blank"
+                      class="inviteLink"
                   >
                     🚀 {{ bot.bot_name }}を招待
                   </a>
@@ -457,10 +474,33 @@ function getInviteUrl(botId) {
   font-size: 14px;
 }
 
+.btnGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .buyBtn {
   width: 100%;
   padding: 14px;
   font-weight: 900;
+}
+
+.manageBtn {
+  width: 100%;
+  padding: 12px;
+  font-weight: 900;
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.manageBtn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
 }
 
 .listCard {
@@ -720,6 +760,12 @@ function getInviteUrl(botId) {
 @media (max-width: 768px) {
   .grid2 {
     grid-template-columns: 1fr;
+  }
+  .benefitsGrid {
+    grid-template-columns: 1fr;
+  }
+  .benefitCard.featured {
+    transform: none;
   }
   .row {
     flex-direction: column;

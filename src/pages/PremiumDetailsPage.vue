@@ -4,13 +4,11 @@ import HeaderBar from "@/components/HeaderBar.vue";
 import FooterBar from "@/components/FooterBar.vue";
 import { useAuth } from "@/features/auth/useAuth.js";
 
-const { isLoggedIn, refreshMe } = useAuth();
+const { isLoggedIn } = useAuth();
 
 const BRAND = {
   name: "Sumire Vox Bot",
 };
-
-onMounted(refreshMe);
 
 const BENEFIT_GROUPS = [
   {

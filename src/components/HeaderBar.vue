@@ -6,13 +6,11 @@ import { getApiUrl } from "@/lib/http.js";
 import logo from "@/assets/logo.png";
 
 const router = useRouter();
-const { isLoggedIn, refreshMe, logout } = useAuth();
+const { isLoggedIn, logout } = useAuth();
 
 const BRAND = {
   name: "Sumire Vox Bot",
 };
-
-onMounted(refreshMe);
 
 function loginWithDiscord() {
   window.location.href = getApiUrl("/auth/discord/start");

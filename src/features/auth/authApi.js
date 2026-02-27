@@ -8,7 +8,10 @@ import { apiFetch, AuthError, NetworkError } from "@/lib/http.js";
  */
 export async function getMe() {
     try {
-        const { res, data } = await apiFetch("/auth/me", { method: "GET" });
+        const { res, data } = await apiFetch("/auth/me", {
+            method: "GET",
+            skipAuthRedirect: true
+        });
 
         if (!res.ok) {
             return null;
@@ -16,15 +19,12 @@ export async function getMe() {
 
         return data?.user ?? null;
     } catch (error) {
-        // 認証エラーの場合はnullを返す
         if (error instanceof AuthError) {
             return null;
         }
-        // ネットワークエラーはそのままスロー
         if (error instanceof NetworkError) {
             throw error;
         }
-        // その他のエラーはログしてnullを返す
         console.error("getMe error:", error);
         return null;
     }

@@ -88,22 +88,34 @@ export function getApiUrl(path) {
  * @returns {Promise<{res: Response, data: any}>}
  */
 export async function apiFetch(path, options = {}) {
+    const { skipAuthRedirect = false, ...fetchOptions } = options;
     let res;
     const url = getApiUrl(path);
 
     try {
         res = await fetch(url, {
             credentials: "include",
-            ...options,
+            ...fetchOptions,
             headers: {
-                ...(options.headers || {}),
+                ...(fetchOptions.headers || {}),
                 "Content-Type": "application/json",
             },
         });
     } catch (error) {
-        // ネットワークエラー（オフライン、DNS解決失敗など）
         console.error("Network error:", error);
         throw new NetworkError();
+    }
+
+    if (res.status === 429) {
+        const retryAfter = parseInt(res.headers.get("Retry-After") || "60", 10);
+        throw new RateLimitError(retryAfter);
+    }
+
+    if (res.status === 401) {
+        if (!skipAuthRedirect) {
+            handleAuthError();
+        }
+        throw new AuthError();
     }
 
     // レート制限エラー

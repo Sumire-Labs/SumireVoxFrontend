@@ -12,7 +12,13 @@ const BRAND = {
   name: "Sumire Vox Bot",
 };
 
-onMounted(refreshMe);
+onMounted(async () => {
+  try {
+    await refreshMe();
+  } catch (e) {
+    console.debug("Auth refresh failed:", e);
+  }
+});
 
 function loginWithDiscord() {
   window.location.href = getApiUrl("/auth/discord/start");

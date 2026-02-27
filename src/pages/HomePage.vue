@@ -206,7 +206,7 @@ function goInvite() {
         <div class="premium">
           <div class="plan">
             <div class="planName">Premium</div>
-            <div class="planPrice">¥ 500 / 月 (１ブースト)</div>
+            <div class="planPrice">¥ 300 / 月 (１ブースト)</div>
             <ul class="planList">
               <li>Bot台数の増加</li>
               <li>辞書枠の拡張</li>
